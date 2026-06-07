@@ -88,63 +88,73 @@ export default function EditorPage({ onLogout }) {
 
       {/* Main Content */}
       <main className="editor-main">
-        <PanelGroup direction="horizontal">
-          {/* Left Panel - Editor */}
-          <Panel defaultSize={55} minSize={30}>
-            <div className="editor-container">
-              <div className="panel-header">
-                <span>📝 Editor</span>
-                <span className="file-name">código.simples</span>
-              </div>
-              <Editor
-                value={code}
-                onChange={setCode}
-                language="simples"
-                theme="vs-dark"
-                readOnly={false}
-                minimap={true}
+        <PanelGroup direction="vertical">
+          {/* Top: Editor + NASM (Horizontal Layout) */}
+          <Panel defaultSize={70} minSize={40}>
+            <PanelGroup direction="horizontal">
+              {/* Left Panel - Editor */}
+              <Panel defaultSize={40} minSize={30}>
+                <div className="editor-container">
+                  <div className="panel-header">
+                    <span>📝 Editor</span>
+                    <span className="file-name">código.simples</span>
+                  </div>
+                  <Editor
+                    value={code}
+                    onChange={setCode}
+                    language="simples"
+                    theme="vs-dark"
+                    readOnly={false}
+                    minimap={true}
+                  />
+                </div>
+              </Panel>
+
+              {/* Resizer with Double-Click Handler */}
+              <PanelResizeHandle 
+                className="resizer" 
+                ref={resizerRef}
+                onDoubleClick={handleResizerDoubleClick}
               />
-            </div>
+
+              {/* Right Panel - NASM */}
+              <Panel 
+                defaultSize={60} 
+                minSize={namsCollapsed ? 0 : 20}
+                collapsible={true}
+                onCollapse={() => setNasmCollapsed(true)}
+                onExpand={() => setNasmCollapsed(false)}
+              >
+                <div className="nasm-container">
+                  <div className="panel-header">
+                    <span>⚙️ NASM Assembly</span>
+                  </div>
+                  <div className="nasm-content">
+                    <p className="placeholder-text">NASM será exibido aqui após compilação</p>
+                    <p className="placeholder-hint">(Dê double-click no separador para colapsar)</p>
+                  </div>
+                </div>
+              </Panel>
+            </PanelGroup>
           </Panel>
 
-          {/* Resizer with Double-Click Handler */}
-          <PanelResizeHandle 
-            className="resizer" 
-            ref={resizerRef}
-            onDoubleClick={handleResizerDoubleClick}
-          />
+          {/* Vertical Resizer between Editor+NASM and Terminal */}
+          <PanelResizeHandle className="resizer resizer-vertical" />
 
-          {/* Right Panel - NASM */}
-          <Panel 
-            defaultSize={45} 
-            minSize={namsCollapsed ? 0 : 20}
-            collapsible={true}
-            onCollapse={() => setNasmCollapsed(true)}
-            onExpand={() => setNasmCollapsed(false)}
-          >
-            <div className="nasm-container">
+          {/* Bottom Panel - Terminal */}
+          <Panel defaultSize={30} minSize={10}>
+            <div className="terminal-container">
               <div className="panel-header">
-                <span>⚙️ NASM Assembly</span>
+                <span>💻 Terminal</span>
               </div>
-              <div className="nasm-content">
-                <p className="placeholder-text">NASM será exibido aqui após compilação</p>
-                <p className="placeholder-hint">(Dê double-click no separador para colapsar)</p>
+              <div className="terminal-content">
+                <p className="placeholder-text">Terminal será exibido aqui após execução</p>
+                <p className="placeholder-hint">(Sprint 4 - WebSocket + xterm.js)</p>
               </div>
             </div>
           </Panel>
         </PanelGroup>
       </main>
-
-      {/* Footer - Terminal (Placeholder) */}
-      <footer className="editor-footer">
-        <div className="panel-header">
-          <span>💻 Terminal</span>
-        </div>
-        <div className="terminal-content">
-          <p className="placeholder-text">Terminal será exibido aqui após execução</p>
-          <p className="placeholder-hint">(Sprint 4 - WebSocket + xterm.js)</p>
-        </div>
-      </footer>
 
       {/* Status Bar */}
       <div className="status-bar">

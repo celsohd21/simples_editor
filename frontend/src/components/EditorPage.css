@@ -158,8 +158,21 @@
   box-shadow: inset 0 0 10px rgba(0, 122, 204, 0.3);
 }
 
+.resizer-vertical {
+  width: auto;
+  height: 1px;
+  cursor: row-resize;
+}
+
+.resizer-vertical:hover {
+  width: auto;
+  height: 2px;
+  box-shadow: inset 0 10px 10px rgba(0, 122, 204, 0.3);
+}
+
 .editor-container,
-.nasm-container {
+.nasm-container,
+.terminal-container {
   display: flex;
   flex-direction: column;
   background-color: var(--panel-bg);
@@ -173,6 +186,11 @@
 .nasm-container {
   flex: 1;
   border-left: none;
+}
+
+.terminal-container {
+  flex: 1;
+  border-top: none;
 }
 
 .panel-header {
