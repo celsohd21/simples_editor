@@ -29,7 +29,7 @@ export default function Editor({
     const editor = monaco.editor.create(containerRef.current, {
       value: value,
       language: language,
-      theme: theme,
+      theme: language === 'simples' ? 'simples-dark' : theme,
       readOnly: readOnly,
       automaticLayout: true,
       minimap: {
