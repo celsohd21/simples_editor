@@ -14,8 +14,9 @@ COPY backend/requirements.txt .
 # Instalar dependências Python
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copiar código
-COPY backend/src .
+# Copiar código e testes
+COPY backend/src ./src
+COPY backend/tests ./tests
 
 # Expor porta
 EXPOSE 5000

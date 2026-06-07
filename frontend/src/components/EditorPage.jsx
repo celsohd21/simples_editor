@@ -1,0 +1,134 @@
+import { useState, useEffect } from 'react'
+import Editor from './Editor'
+import './EditorPage.css'
+
+/**
+ * Página principal com o Monaco Editor integrado.
+ * Componentes da página:
+ * - Editor de código (esquerda)
+ * - Painel NASM (direita) - placeholder para Sprint 2
+ * - Terminal (inferior) - placeholder para Sprint 4
+ */
+export default function EditorPage({ onLogout }) {
+  const [code, setCode] = useState(
+    `// Bem-vindo ao Simples Editor!\n// Escreva código SIMPLES aqui\n\nleia x\nescreva x\n`
+  )
+  const [savedCode, setSavedCode] = useState(code)
+  const [isRunning, setIsRunning] = useState(false)
+
+  // Salva o código em localStorage
+  useEffect(() => {
+    const handleSave = (e) => {
+      setSavedCode(code)
+      console.log('Código salvo:', code)
+      // TODO: Salvar no backend/banco de dados (Sprint 3)
+    }
+    window.addEventListener('editor:save', handleSave)
+    return () => window.removeEventListener('editor:save', handleSave)
+  }, [code])
+
+  const handleRun = () => {
+    setIsRunning(true)
+    console.log('Executando código:', code)
+    // TODO: Enviar para backend para compilação (Sprint 3)
+    setTimeout(() => setIsRunning(false), 2000)
+  }
+
+  const handleClear = () => {
+    if (confirm('Deseja limpar o editor?')) {
+      setCode('')
+    }
+  }
+
+  const handleReset = () => {
+    if (confirm('Deseja restaurar o código de exemplo?')) {
+      setCode(`// Bem-vindo ao Simples Editor!\n// Escreva código SIMPLES aqui\n\nleia x\nescreva x\n`)
+    }
+  }
+
+  const handleLogout = () => {
+    onLogout()
+  }
+
+  return (
+    <div className="editor-page">
+      {/* Header */}
+      <header className="editor-header">
+        <div className="header-left">
+          <h1>Simples Editor</h1>
+          <span className="status-badge">Pronto</span>
+        </div>
+        <div className="header-right">
+          <button
+            className="btn btn-primary"
+            onClick={handleRun}
+            disabled={isRunning}
+            title="Ctrl+Enter ou clique aqui"
+          >
+            {isRunning ? '▌ Executando...' : '▶ Run'}
+          </button>
+          <button className="btn btn-secondary" onClick={handleClear} title="Limpa o editor">
+            Limpar
+          </button>
+          <button className="btn btn-secondary" onClick={handleReset} title="Restaura exemplo">
+            Reset
+          </button>
+          <button className="btn btn-logout" onClick={handleLogout} title="Fazer logout">
+            Logout
+          </button>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="editor-main">
+        {/* Left Panel - Editor */}
+        <div className="editor-container">
+          <div className="panel-header">
+            <span>📝 Editor</span>
+            <span className="file-name">código.simples</span>
+          </div>
+          <Editor
+            value={code}
+            onChange={setCode}
+            language="simples"
+            theme="vs-dark"
+            readOnly={false}
+            minimap={true}
+          />
+        </div>
+
+        {/* Right Panel - NASM (Placeholder) */}
+        <div className="nasm-container">
+          <div className="panel-header">
+            <span>⚙️ NASM Assembly</span>
+          </div>
+          <div className="nasm-content">
+            <p className="placeholder-text">NASM será exibido aqui após compilação</p>
+            <p className="placeholder-hint">(Sprint 2 - Integração de painel resizável)</p>
+          </div>
+        </div>
+      </main>
+
+      {/* Footer - Terminal (Placeholder) */}
+      <footer className="editor-footer">
+        <div className="panel-header">
+          <span>💻 Terminal</span>
+        </div>
+        <div className="terminal-content">
+          <p className="placeholder-text">Terminal será exibido aqui após execução</p>
+          <p className="placeholder-hint">(Sprint 4 - WebSocket + xterm.js)</p>
+        </div>
+      </footer>
+
+      {/* Status Bar */}
+      <div className="status-bar">
+        <span>Linhas: {code.split('\n').length}</span>
+        <span>•</span>
+        <span>Caracteres: {code.length}</span>
+        <span>•</span>
+        <span>Salvo: {savedCode === code ? 'Sim ✓' : 'Não ✗'}</span>
+        <span className="status-right">UTF-8 • CRLF • Simples</span>
+      </div>
+    </div>
+  )
+}

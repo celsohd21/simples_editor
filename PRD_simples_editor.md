@@ -859,7 +859,6 @@ git clone --recurse-submodules https://github.com/<org>/simples-online.git
 cd simples-online
 
 # 2. Configurar variáveis de ambiente
-cp .env.example .env
 # Editar .env com SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_JWT_SECRET
 
 # 3. Subir todos os serviços
@@ -953,7 +952,6 @@ docker run --privileged --rm tonistiigi/binfmt --install i386
 # Clonar e configurar
 git clone --recurse-submodules https://github.com/<org>/simples-online.git
 cd simples-online
-cp .env.example .env
 nano .env   # preencher SUPABASE_*, ajustar EXEC_TIMEOUT_S=15 se necessário
 
 # Build e subir
@@ -1395,7 +1393,7 @@ class PtyExecutionStrategy(ExecutionStrategy):
 
 > **Nota:** o trecho acima é referência didática. A implementação final lida com edge cases (socket fechado abruptamente, container que não inicia, race conditions no `wait`).
 
-### C. Variáveis de ambiente (`.env.example`)
+### C. Variáveis de ambiente (`.env`)
 
 ```bash
 # Supabase

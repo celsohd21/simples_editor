@@ -18,7 +18,7 @@ git clone https://github.com/celsohd21/simples_editor.git
 cd simples_editor/simples_editor
 
 # 2. Configure as variáveis de ambiente
-cp .env.example .env
+# Edite o .env na raiz com os valores reais do projeto
 
 # 3. Rode os containers
 docker compose up --build
@@ -82,7 +82,7 @@ simples_editor/
 │   │   └── app.py            # App Flask principal
 │   └── requirements.txt
 ├── docker-compose.yml        # Orquestração
-├── .env.example              # Template de env vars
+├── .env                      # Variáveis de ambiente reais
 └── README.md
 ```
 
@@ -144,7 +144,7 @@ curl http://localhost/api/health
 
 ## 📝 Variáveis de Ambiente
 
-Crie um arquivo `.env` na raiz (veja `.env.example`):
+Edite o arquivo `.env` na raiz com as variáveis abaixo:
 
 ```env
 # Supabase (Sprint 1)

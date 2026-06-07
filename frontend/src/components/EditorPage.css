@@ -1,0 +1,346 @@
+/* EditorPage - Layout principal com editor, NASM panel, terminal */
+
+:root {
+  --bg: #1e1e1e;
+  --bg-soft: #252526;
+  --panel-bg: #2d2d30;
+  --border-color: #3e3e42;
+  --text: #e0e0e0;
+  --text-muted: #858585;
+  --accent: #007acc;
+  --accent-hover: #0098ff;
+  --danger: #f48771;
+  --success: #89d185;
+  --warning: #dcdcaa;
+}
+
+.editor-page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial',
+    sans-serif;
+  overflow: hidden;
+}
+
+/* ============================================================================
+   HEADER
+   ============================================================================ */
+
+.editor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  background-color: var(--panel-bg);
+  border-bottom: 1px solid var(--border-color);
+  height: 56px;
+  flex-shrink: 0;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.editor-header h1 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  background-color: rgba(137, 209, 133, 0.2);
+  color: var(--success);
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.header-right {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* ============================================================================
+   BUTTONS
+   ============================================================================ */
+
+.btn {
+  padding: 8px 16px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background-color: transparent;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn:hover:not(:disabled) {
+  background-color: var(--border-color);
+  border-color: var(--accent);
+}
+
+.btn:active:not(:disabled) {
+  background-color: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background-color: var(--accent);
+  border-color: var(--accent);
+  color: white;
+  font-weight: 600;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+
+.btn-secondary {
+  background-color: transparent;
+}
+
+.btn-logout {
+  background-color: transparent;
+  margin-left: 8px;
+  padding-left: 8px;
+  border-left: 1px solid var(--border-color);
+}
+
+.btn-logout:hover {
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+/* ============================================================================
+   MAIN CONTENT
+   ============================================================================ */
+
+.editor-main {
+  display: flex;
+  flex: 1;
+  gap: 1px;
+  background-color: var(--border-color);
+  overflow: hidden;
+  min-height: 0;
+}
+
+.editor-container,
+.nasm-container {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--panel-bg);
+  min-height: 0;
+}
+
+.editor-container {
+  flex: 1.1;
+}
+
+.nasm-container {
+  flex: 0.9;
+  border-left: 1px solid var(--border-color);
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 16px;
+  background-color: var(--bg-soft);
+  border-bottom: 1px solid var(--border-color);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  flex-shrink: 0;
+}
+
+.file-name {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 400;
+}
+
+/* ============================================================================
+   EDITOR CONTAINER
+   ============================================================================ */
+
+.editor-container {
+  position: relative;
+}
+
+.editor-container > div:not(.panel-header) {
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ============================================================================
+   NASM PANEL
+   ============================================================================ */
+
+.nasm-content {
+  flex: 1;
+  padding: 32px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: var(--text-muted);
+  font-family: 'Fira Code', 'Monaco', 'Courier New', monospace;
+  font-size: 13px;
+}
+
+.placeholder-text {
+  margin: 0 0 12px;
+  text-align: center;
+  color: var(--text);
+  font-weight: 500;
+}
+
+.placeholder-hint {
+  margin: 0;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+/* ============================================================================
+   FOOTER - TERMINAL
+   ============================================================================ */
+
+.editor-footer {
+  display: flex;
+  flex-direction: column;
+  height: 160px;
+  background-color: var(--panel-bg);
+  border-top: 1px solid var(--border-color);
+  flex-shrink: 0;
+}
+
+.terminal-content {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+  background-color: var(--bg);
+  font-family: 'Fira Code', 'Monaco', 'Courier New', monospace;
+  font-size: 12px;
+  line-height: 1.6;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: var(--text-muted);
+}
+
+/* ============================================================================
+   STATUS BAR
+   ============================================================================ */
+
+.status-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 16px;
+  background-color: var(--bg-soft);
+  border-top: 1px solid var(--border-color);
+  font-size: 11px;
+  color: var(--text-muted);
+  height: 24px;
+  flex-shrink: 0;
+  gap: 12px;
+}
+
+.status-right {
+  margin-left: auto;
+}
+
+/* ============================================================================
+   SCROLLBARS
+   ============================================================================ */
+
+.editor-container::-webkit-scrollbar,
+.nasm-content::-webkit-scrollbar,
+.terminal-content::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+.editor-container::-webkit-scrollbar-track,
+.nasm-content::-webkit-scrollbar-track,
+.terminal-content::-webkit-scrollbar-track {
+  background-color: var(--panel-bg);
+}
+
+.editor-container::-webkit-scrollbar-thumb,
+.nasm-content::-webkit-scrollbar-thumb,
+.terminal-content::-webkit-scrollbar-thumb {
+  background-color: var(--border-color);
+  border-radius: 6px;
+}
+
+.editor-container::-webkit-scrollbar-thumb:hover,
+.nasm-content::-webkit-scrollbar-thumb:hover,
+.terminal-content::-webkit-scrollbar-thumb:hover {
+  background-color: var(--text-muted);
+}
+
+/* ============================================================================
+   RESPONSIVE
+   ============================================================================ */
+
+@media (max-width: 768px) {
+  .editor-main {
+    flex-direction: column;
+  }
+
+  .editor-container,
+  .nasm-container {
+    flex: 0.5 !important;
+  }
+
+  .nasm-container {
+    border-left: none;
+    border-top: 1px solid var(--border-color);
+  }
+
+  .editor-header {
+    flex-direction: column;
+    gap: 12px;
+    height: auto;
+    padding: 12px;
+  }
+
+  .header-left,
+  .header-right {
+    width: 100%;
+  }
+
+  .header-right {
+    justify-content: space-between;
+  }
+
+  .btn {
+    padding: 6px 12px;
+    font-size: 11px;
+  }
+}
