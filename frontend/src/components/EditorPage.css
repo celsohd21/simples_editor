@@ -138,10 +138,24 @@
 .editor-main {
   display: flex;
   flex: 1;
-  gap: 1px;
-  background-color: var(--border-color);
+  gap: 0;
+  background-color: transparent;
   overflow: hidden;
   min-height: 0;
+}
+
+.resizer {
+  width: 1px;
+  background-color: var(--border-color);
+  cursor: col-resize;
+  transition: background-color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.resizer:hover {
+  background-color: var(--accent);
+  width: 2px;
+  box-shadow: inset 0 0 10px rgba(0, 122, 204, 0.3);
 }
 
 .editor-container,
@@ -153,12 +167,12 @@
 }
 
 .editor-container {
-  flex: 1.1;
+  flex: 1;
 }
 
 .nasm-container {
-  flex: 0.9;
-  border-left: 1px solid var(--border-color);
+  flex: 1;
+  border-left: none;
 }
 
 .panel-header {
@@ -311,6 +325,17 @@
 @media (max-width: 768px) {
   .editor-main {
     flex-direction: column;
+  }
+
+  .resizer {
+    height: 1px;
+    width: auto;
+    cursor: row-resize;
+  }
+
+  .resizer:hover {
+    width: auto;
+    height: 2px;
   }
 
   .editor-container,

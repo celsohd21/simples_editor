@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels'
 import Editor from './Editor'
 import './EditorPage.css'
 
@@ -15,6 +16,8 @@ export default function EditorPage({ onLogout }) {
   )
   const [savedCode, setSavedCode] = useState(code)
   const [isRunning, setIsRunning] = useState(false)
+  const [namsCollapsed, setNasmCollapsed] = useState(false)
+  const resizerRef = useRef(null)
 
   // Salva o código em localStorage
   useEffect(() => {
@@ -44,6 +47,10 @@ export default function EditorPage({ onLogout }) {
     if (confirm('Deseja restaurar o código de exemplo?')) {
       setCode(`// Bem-vindo ao Simples Editor!\n// Escreva código SIMPLES aqui\n\nleia x\nescreva x\n`)
     }
+  }
+
+  const handleResizerDoubleClick = () => {
+    setNasmCollapsed(!namsCollapsed)
   }
 
   const handleLogout = () => {
@@ -81,32 +88,51 @@ export default function EditorPage({ onLogout }) {
 
       {/* Main Content */}
       <main className="editor-main">
-        {/* Left Panel - Editor */}
-        <div className="editor-container">
-          <div className="panel-header">
-            <span>📝 Editor</span>
-            <span className="file-name">código.simples</span>
-          </div>
-          <Editor
-            value={code}
-            onChange={setCode}
-            language="simples"
-            theme="vs-dark"
-            readOnly={false}
-            minimap={true}
-          />
-        </div>
+        <PanelGroup direction="horizontal">
+          {/* Left Panel - Editor */}
+          <Panel defaultSize={55} minSize={30}>
+            <div className="editor-container">
+              <div className="panel-header">
+                <span>📝 Editor</span>
+                <span className="file-name">código.simples</span>
+              </div>
+              <Editor
+                value={code}
+                onChange={setCode}
+                language="simples"
+                theme="vs-dark"
+                readOnly={false}
+                minimap={true}
+              />
+            </div>
+          </Panel>
 
-        {/* Right Panel - NASM (Placeholder) */}
-        <div className="nasm-container">
-          <div className="panel-header">
-            <span>⚙️ NASM Assembly</span>
-          </div>
-          <div className="nasm-content">
-            <p className="placeholder-text">NASM será exibido aqui após compilação</p>
-            <p className="placeholder-hint">(Sprint 2 - Integração de painel resizável)</p>
-          </div>
-        </div>
+          {/* Resizer with Double-Click Handler */}
+          <PanelResizeHandle 
+            className="resizer" 
+            ref={resizerRef}
+            onDoubleClick={handleResizerDoubleClick}
+          />
+
+          {/* Right Panel - NASM */}
+          <Panel 
+            defaultSize={45} 
+            minSize={namsCollapsed ? 0 : 20}
+            collapsible={true}
+            onCollapse={() => setNasmCollapsed(true)}
+            onExpand={() => setNasmCollapsed(false)}
+          >
+            <div className="nasm-container">
+              <div className="panel-header">
+                <span>⚙️ NASM Assembly</span>
+              </div>
+              <div className="nasm-content">
+                <p className="placeholder-text">NASM será exibido aqui após compilação</p>
+                <p className="placeholder-hint">(Dê double-click no separador para colapsar)</p>
+              </div>
+            </div>
+          </Panel>
+        </PanelGroup>
       </main>
 
       {/* Footer - Terminal (Placeholder) */}
