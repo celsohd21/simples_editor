@@ -1,0 +1,4 @@
+programa HelloWorld
+inicio
+  escreva "Ola, SIMPLES!"
+fim

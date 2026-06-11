@@ -1,0 +1,10 @@
+programa Soma
+inicio
+  inteiro a
+  inteiro b
+  inteiro resultado
+  leia a
+  leia b
+  resultado := a + b
+  escreva resultado
+fim

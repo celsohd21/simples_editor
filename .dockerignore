@@ -1,0 +1,10 @@
+node_modules/
+__pycache__/
+*.pyc
+.git/
+.gitignore
+.env
+README.md
+PRD_simples_editor.md
+SPRINTS.md
+DOCKER_SETUP.md

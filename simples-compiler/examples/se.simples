@@ -1,0 +1,10 @@
+programa Condicional
+inicio
+  inteiro x
+  leia x
+  se x > 0 entao
+    escreva "positivo"
+  senao
+    escreva "negativo ou zero"
+  fimse
+fim
