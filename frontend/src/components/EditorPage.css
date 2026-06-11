@@ -188,6 +188,11 @@
   border-left: none;
 }
 
+.nasm-container > div:not(.panel-header) {
+  flex: 1;
+  overflow: hidden;
+}
+
 .terminal-container {
   flex: 1;
   border-top: none;
@@ -284,6 +289,22 @@
   color: var(--text-muted);
 }
 
+.terminal-content:has(.terminal-pre) {
+  justify-content: flex-start;
+  align-items: stretch;
+  padding: 8px 16px;
+}
+
+.terminal-pre {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-all;
+  color: var(--text);
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+
 /* ============================================================================
    STATUS BAR
    ============================================================================ */
@@ -311,27 +332,23 @@
    ============================================================================ */
 
 .editor-container::-webkit-scrollbar,
-.nasm-content::-webkit-scrollbar,
 .terminal-content::-webkit-scrollbar {
   width: 12px;
   height: 12px;
 }
 
 .editor-container::-webkit-scrollbar-track,
-.nasm-content::-webkit-scrollbar-track,
 .terminal-content::-webkit-scrollbar-track {
   background-color: var(--panel-bg);
 }
 
 .editor-container::-webkit-scrollbar-thumb,
-.nasm-content::-webkit-scrollbar-thumb,
 .terminal-content::-webkit-scrollbar-thumb {
   background-color: var(--border-color);
   border-radius: 6px;
 }
 
 .editor-container::-webkit-scrollbar-thumb:hover,
-.nasm-content::-webkit-scrollbar-thumb:hover,
 .terminal-content::-webkit-scrollbar-thumb:hover {
   background-color: var(--text-muted);
 }

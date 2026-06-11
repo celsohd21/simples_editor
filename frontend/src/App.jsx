@@ -2,16 +2,19 @@ import { useState, useEffect } from 'react'
 import LoginPage from './pages/LoginPage'
 import EditorPage from './components/EditorPage'
 import { registerSimplesLanguage, registerSimplesAutocomplete } from './languages/simples'
+import { registerNasmLanguage, registerNasmAutocomplete } from './languages/nasm'
 import './App.css'
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [loading, setLoading] = useState(true)
 
-  // Registra a linguagem SIMPLES ao carregar
+  // Registra as linguagens SIMPLES e NASM ao carregar
   useEffect(() => {
     registerSimplesLanguage()
     registerSimplesAutocomplete()
+    registerNasmLanguage()
+    registerNasmAutocomplete()
   }, [])
 
   // Verifica se há token salvo ao carregar

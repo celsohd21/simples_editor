@@ -1,22 +1,174 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels'
 import Editor from './Editor'
+import NasmPanel from './NasmPanel'
 import './EditorPage.css'
+
+const MOCK_NASM = `; Generated NASM Assembly
+section .data
+    msg db "Ola, SIMPLES!", 0
+
+section .text
+    global _start
+_start:
+    mov rax, 1
+    mov rdi, 1
+    mov rsi, msg
+    mov rdx, 13
+    syscall
+    mov rax, 60
+    mov rdi, 0
+    syscall`
+
+function mockCompile(source) {
+  const lines = source.split('\n')
+  const errors = []
+
+  const cleaned = source
+    .split('\n')
+    .map((l) => l.replace(/{[^}]*}/g, '').trim())
+    .filter((l) => l.length > 0 && !l.startsWith('//'))
+
+  if (cleaned.length === 0) {
+    return { errors, nasm: '', terminal: '[!] Nenhum codigo para compilar.\n' }
+  }
+
+  cleaned.forEach((line, i) => {
+    if (line.length > 80) {
+      errors.push({
+        line: i + 1,
+        column: 81,
+        message: 'Linha muito longa (>80 caracteres)',
+        severity: 'warning',
+      })
+    }
+  })
+
+  const hasPrograma = cleaned.some((l) => /\bprograma\b/i.test(l))
+  const hasInicio = cleaned.some((l) => /\binicio\b/i.test(l))
+  const hasFim = cleaned.some((l) => /\bfim\b/i.test(l))
+
+  if (cleaned.some((l) => /\binicio\b/i.test(l)) && !hasFim) {
+    errors.push({
+      line: null,
+      column: null,
+      message: 'Bloco "inicio" sem "fim" correspondente — esperado "fim" no final do programa',
+      severity: 'error',
+    })
+  }
+
+  if (cleaned.some((l) => /\bfim\b/i.test(l)) && !hasInicio) {
+    errors.push({
+      line: null,
+      column: null,
+      message: '"fim" sem "inicio" correspondente',
+      severity: 'error',
+    })
+  }
+
+  if (hasPrograma && !hasInicio) {
+    errors.push({
+      line: null,
+      column: null,
+      message: 'Esperado "inicio" apos "programa"',
+      severity: 'error',
+    })
+  }
+
+  if (hasInicio && !hasPrograma && !hasFim) {
+    errors.push({
+      line: null,
+      column: null,
+      message: 'Programa deve comecar com "programa <nome>"',
+      severity: 'error',
+    })
+  }
+
+  const declaredVars = new Set()
+  const usedVars = new Set()
+
+  cleaned.forEach((line, i) => {
+    const declMatch = line.match(
+      /\b(inteiro|real|caractere|booleano)\s+([a-zA-Z_]\w*)/i
+    )
+    if (declMatch) {
+      declaredVars.add(declMatch[2].toLowerCase())
+    }
+
+    const useMatch = line.match(/\b(leia|escreva)\s+([a-zA-Z_]\w*)/i)
+    if (useMatch) {
+      usedVars.add(useMatch[2].toLowerCase())
+    }
+  })
+
+  usedVars.forEach((v) => {
+    if (!declaredVars.has(v)) {
+      const lineNum =
+        cleaned.findIndex(
+          (l) =>
+            new RegExp(`\\b(leia|escreva)\\s+${v}\\b`, 'i').test(l)
+        ) + 1
+      errors.push({
+        line: lineNum > 0 ? lineNum : null,
+        column: null,
+        message: `Variavel "${v}" nao declarada`,
+        severity: 'error',
+      })
+    }
+  })
+
+  const hasErrors = errors.some((e) => e.severity === 'error')
+  const warnings = errors.filter((e) => e.severity === 'warning')
+  const errs = errors.filter((e) => e.severity === 'error')
+
+  if (!hasErrors) {
+    const nasm = MOCK_NASM
+    const termLines = [
+      '[OK] Compilacao concluida com sucesso!',
+      `[i] Linhas: ${lines.length}`,
+      `[i] Avisos: ${warnings.length}`,
+      `[i] Erros: ${errs.length}`,
+      '',
+      '$ ./output',
+      'Ola, SIMPLES!',
+      '',
+      '[OK] Execucao finalizada (codigo de saida: 0)',
+    ]
+    const terminal = termLines.join('\n')
+    return { errors, nasm, terminal }
+  }
+
+  const termLines = [
+    '[FALHA] Erros de compilacao encontrados:',
+    ...errs.map(
+      (e) =>
+        `  ${e.line ? `Linha ${e.line}` : '---'}: ${e.message}`
+    ),
+    '',
+    `[i] Total: ${errs.length} erro(s), ${warnings.length} aviso(s)`,
+  ]
+  const terminal = termLines.join('\n')
+
+  return { errors, nasm: '', terminal }
+}
 
 /**
  * Página principal com o Monaco Editor integrado.
  * Componentes da página:
  * - Editor de código (esquerda)
- * - Painel NASM (direita) - placeholder para Sprint 2
- * - Terminal (inferior) - placeholder para Sprint 4
+ * - Painel NASM (direita)
+ * - Terminal (inferior)
  */
 export default function EditorPage({ onLogout }) {
   const [code, setCode] = useState(
-    `// Bem-vindo ao Simples Editor!\n// Escreva código SIMPLES aqui\n\nleia x\nescreva x\n`
+    `programa Exemplo\ninicio\n  inteiro x\n  leia x\n  escreva x\nfim`
   )
   const [savedCode, setSavedCode] = useState(code)
   const [isRunning, setIsRunning] = useState(false)
   const [namsCollapsed, setNasmCollapsed] = useState(false)
+  const [nasmOutput, setNasmOutput] = useState('')
+  const [terminalOutput, setTerminalOutput] = useState('')
+  const [compilationErrors, setCompilationErrors] = useState([])
   const resizerRef = useRef(null)
 
   // Salva o código em localStorage
@@ -24,18 +176,25 @@ export default function EditorPage({ onLogout }) {
     const handleSave = (e) => {
       setSavedCode(code)
       console.log('Código salvo:', code)
-      // TODO: Salvar no backend/banco de dados (Sprint 3)
     }
     window.addEventListener('editor:save', handleSave)
     return () => window.removeEventListener('editor:save', handleSave)
   }, [code])
 
-  const handleRun = () => {
+  const handleRun = useCallback(() => {
     setIsRunning(true)
-    console.log('Executando código:', code)
-    // TODO: Enviar para backend para compilação (Sprint 3)
-    setTimeout(() => setIsRunning(false), 2000)
-  }
+    setCompilationErrors([])
+    setNasmOutput('🔄 Compilando...')
+    setTerminalOutput('🔄 Compilando...')
+
+    setTimeout(() => {
+      const result = mockCompile(code)
+      setCompilationErrors(result.errors)
+      setNasmOutput(result.nasm)
+      setTerminalOutput(result.terminal)
+      setIsRunning(false)
+    }, 1500)
+  }, [code])
 
   const handleClear = () => {
     if (confirm('Deseja limpar o editor?')) {
@@ -106,6 +265,7 @@ export default function EditorPage({ onLogout }) {
                     theme="vs-dark"
                     readOnly={false}
                     minimap={true}
+                    markers={compilationErrors}
                   />
                 </div>
               </Panel>
@@ -129,10 +289,14 @@ export default function EditorPage({ onLogout }) {
                   <div className="panel-header">
                     <span>⚙️ NASM Assembly</span>
                   </div>
-                  <div className="nasm-content">
-                    <p className="placeholder-text">NASM será exibido aqui após compilação</p>
-                    <p className="placeholder-hint">(Dê double-click no separador para colapsar)</p>
-                  </div>
+                  {nasmOutput ? (
+                    <NasmPanel value={nasmOutput} />
+                  ) : (
+                    <div className="nasm-content">
+                      <p className="placeholder-text">NASM será exibido aqui após compilação</p>
+                      <p className="placeholder-hint">(Clique em Run para compilar)</p>
+                    </div>
+                  )}
                 </div>
               </Panel>
             </PanelGroup>
@@ -148,8 +312,14 @@ export default function EditorPage({ onLogout }) {
                 <span>💻 Terminal</span>
               </div>
               <div className="terminal-content">
-                <p className="placeholder-text">Terminal será exibido aqui após execução</p>
-                <p className="placeholder-hint">(Sprint 4 - WebSocket + xterm.js)</p>
+                {terminalOutput ? (
+                  <pre className="terminal-pre">{terminalOutput}</pre>
+                ) : (
+                  <>
+                    <p className="placeholder-text">Terminal será exibido aqui após execução</p>
+                    <p className="placeholder-hint">(Clique em Run para compilar)</p>
+                  </>
+                )}
               </div>
             </div>
           </Panel>

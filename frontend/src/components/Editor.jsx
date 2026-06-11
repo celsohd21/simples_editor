@@ -1,16 +1,8 @@
 import { useEffect, useRef } from 'react'
 import * as monaco from 'monaco-editor'
 
-/**
- * Componente do Editor Monaco para código SIMPLES.
- * 
- * Props:
- *   value: string - Código a exibir
- *   onChange: function - Callback quando código muda
- *   language: string - Linguagem (padrão: 'simples')
- *   theme: string - Tema (padrão: 'vs-dark')
- *   readOnly: boolean - Se é somente leitura (padrão: false)
- */
+const MARKER_OWNER = 'simples-compiler'
+
 export default function Editor({
   value = '',
   onChange = () => {},
@@ -18,14 +10,16 @@ export default function Editor({
   theme = 'vs-dark',
   readOnly = false,
   minimap = true,
+  markers = [],
 }) {
   const editorRef = useRef(null)
   const containerRef = useRef(null)
+  const markersRef = useRef(null)
+  markersRef.current = markers
 
   useEffect(() => {
     if (!containerRef.current) return
 
-    // Cria a instância do editor
     const editor = monaco.editor.create(containerRef.current, {
       value: value,
       language: language,
@@ -49,7 +43,6 @@ export default function Editor({
       },
       suggestOnTriggerCharacters: true,
       acceptSuggestionOnCommitCharacter: true,
-      // Atalhos padrão
       contextmenu: true,
       rulers: [80, 120],
       scrollbar: {
@@ -60,17 +53,14 @@ export default function Editor({
 
     editorRef.current = editor
 
-    // Listener para mudanças de código
     editor.onDidChangeModelContent(() => {
       const newValue = editor.getValue()
       onChange(newValue)
     })
 
-    // Listener para Ctrl+S (salvar)
     editor.addCommand(
       monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS,
       () => {
-        // Dispatch evento customizado para salvar
         const event = new CustomEvent('editor:save', {
           detail: { code: editor.getValue() },
         })
@@ -78,18 +68,45 @@ export default function Editor({
       }
     )
 
-    // Cleanup
     return () => {
       editor.dispose()
     }
   }, [])
 
-  // Atualiza o valor quando prop muda (de fora)
   useEffect(() => {
     if (editorRef.current && editorRef.current.getValue() !== value) {
       editorRef.current.setValue(value)
     }
   }, [value])
+
+  useEffect(() => {
+    const editor = editorRef.current
+    if (!editor) return
+
+    const model = editor.getModel()
+    if (!model) return
+
+    const m = markersRef.current
+
+    if (!m || m.length === 0) {
+      monaco.editor.setModelMarkers(model, MARKER_OWNER, [])
+      return
+    }
+
+    const monacoMarkers = m.map((err) => ({
+      severity:
+        err.severity === 'warning'
+          ? monaco.MarkerSeverity.Warning
+          : monaco.MarkerSeverity.Error,
+      message: err.message,
+      startLineNumber: err.line || 1,
+      startColumn: err.column || 1,
+      endLineNumber: err.endLine || err.line || 1,
+      endColumn: err.endColumn || (err.column || 1) + 1,
+    }))
+
+    monaco.editor.setModelMarkers(model, MARKER_OWNER, monacoMarkers)
+  }, [markers])
 
   return (
     <div
