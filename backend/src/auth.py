@@ -1,11 +1,20 @@
 """
 Autenticação e autorização com Supabase e JWT.
+Incluem logging estruturado em JSON.
 """
 import os
 import jwt
+import structlog
 from functools import wraps
 from datetime import datetime, timedelta
 from flask import request, jsonify, current_app
+
+
+# ============================================================================
+# LOGGING
+# ============================================================================
+
+logger = structlog.get_logger()
 
 
 # ============================================================================
@@ -42,6 +51,7 @@ supabase_auth = SupabaseAuth()
 def verify_jwt(f):
     """
     Decorator para verificar JWT tokens em endpoints protegidos.
+    Inclui logging estruturado.
     
     Uso:
         @app.route('/api/protected')
@@ -60,9 +70,19 @@ def verify_jwt(f):
             try:
                 token = auth_header.split(' ')[1]  # "Bearer <token>"
             except IndexError:
+                logger.warning(
+                    "jwt_verify_failed",
+                    error="Formato de Authorization inválido",
+                    status=401
+                )
                 return jsonify({"error": "Formato de Authorization inválido"}), 401
         
         if not token:
+            logger.warning(
+                "jwt_verify_failed",
+                error="Token não fornecido",
+                status=401
+            )
             return jsonify({"error": "Token não fornecido"}), 401
         
         try:
@@ -79,9 +99,28 @@ def verify_jwt(f):
             request.user_email = payload.get('email')
             request.token_payload = payload
             
+            # Bind user_id to context for logging
+            structlog.contextvars.bind_contextvars(user_id=request.user_id)
+            
+            logger.info(
+                "jwt_verify_success",
+                user_id=request.user_id,
+                status=200
+            )
+            
         except jwt.ExpiredSignatureError:
+            logger.warning(
+                "jwt_verify_failed",
+                error="Token expirado",
+                status=401
+            )
             return jsonify({"error": "Token expirado"}), 401
         except jwt.InvalidTokenError as e:
+            logger.warning(
+                "jwt_verify_failed",
+                error=f"Token inválido: {str(e)}",
+                status=401
+            )
             return jsonify({"error": f"Token inválido: {str(e)}"}), 401
         
         return f(*args, **kwargs)

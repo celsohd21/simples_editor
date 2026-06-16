@@ -1,11 +1,17 @@
 import os
+import time
+import structlog
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from dotenv import load_dotenv
 from auth_endpoints import auth_bp
 from auth import verify_jwt
+from logging_config import setup_logging
 
 load_dotenv()
+
+setup_logging()
+logger = structlog.get_logger()
 
 app = Flask(__name__)
 CORS(app)
@@ -62,12 +68,24 @@ def protected_endpoint():
 @app.errorhandler(404)
 def not_found(e):
     """404 Not Found handler."""
+    logger.error(
+        "not_found",
+        error="Endpoint not found",
+        status=404,
+        path=request.path
+    )
     return jsonify({"error": "Endpoint not found"}), 404
 
 
 @app.errorhandler(500)
 def internal_error(e):
     """500 Internal Server Error handler."""
+    logger.error(
+        "internal_error",
+        error=str(e),
+        status=500,
+        path=request.path
+    )
     return jsonify({"error": "Internal server error"}), 500
 
 
@@ -77,16 +95,46 @@ def internal_error(e):
 
 @app.before_request
 def before_request():
-    """Log incoming requests."""
-    pass
+    """Initialize request context and timing."""
+    # Clear any previous context
+    structlog.contextvars.clear_contextvars()
+    
+    # Set request start time for latency calculation
+    request.start_time = time.time()
+    
+    # Extract user_id from request attributes (set by @verify_jwt decorator)
+    user_id = getattr(request, 'user_id', None)
+    
+    # Bind user_id to thread-local context if available
+    if user_id:
+        structlog.contextvars.bind_contextvars(user_id=user_id)
+    else:
+        structlog.contextvars.bind_contextvars(user_id="anonymous")
 
 
 @app.after_request
 def after_request(response):
-    """Add security headers."""
+    """Log request completion with structured data."""
+    # Calculate request latency
+    latency_ms = 0.0
+    if hasattr(request, 'start_time'):
+        latency_ms = (time.time() - request.start_time) * 1000
+    
+    # Add security headers
     response.headers['X-Content-Type-Options'] = 'nosniff'
     response.headers['X-Frame-Options'] = 'DENY'
     response.headers['X-XSS-Protection'] = '1; mode=block'
+    
+    # Log request with structured data: timestamp, user_id, event, status, latency_ms
+    logger.info(
+        "http_request",
+        method=request.method,
+        path=request.path,
+        status=response.status_code,
+        latency_ms=round(latency_ms, 2),
+        content_length=response.content_length or 0
+    )
+    
     return response
 
 
