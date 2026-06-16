@@ -3,10 +3,12 @@ import time
 import structlog
 from flask import Flask, jsonify, request
 from flask_cors import CORS
+from flask_sock import Sock
 from dotenv import load_dotenv
 from auth_endpoints import auth_bp
 from auth import verify_jwt
 from logging_config import setup_logging
+from ws_handlers import register_ws_handlers
 
 load_dotenv()
 
@@ -15,9 +17,18 @@ logger = structlog.get_logger()
 
 app = Flask(__name__)
 CORS(app)
+sock = Sock(app)
 
 # Registra os blueprints
 app.register_blueprint(auth_bp)
+
+# Configurar timeouts do ambiente
+EXEC_TIMEOUT_S = int(os.getenv('EXEC_TIMEOUT_S', '10'))
+COMPILE_TIMEOUT_S = int(os.getenv('COMPILE_TIMEOUT_S', '15'))
+MAX_CODE_KB = int(os.getenv('MAX_CODE_KB', '64'))
+
+# Registra WebSocket handlers
+register_ws_handlers(app, sock, EXEC_TIMEOUT_S, COMPILE_TIMEOUT_S)
 
 # ============================================================================
 # HEALTH CHECK
@@ -30,6 +41,22 @@ def health_check():
     """
     return jsonify({
         "status": "ok",
+    }), 200
+
+
+# ============================================================================
+# LIMITS ENDPOINT
+# ============================================================================
+
+@app.route('/api/limits', methods=['GET'])
+def get_limits():
+    """
+    Get execution and compilation limits configured on backend.
+    """
+    return jsonify({
+        "exec_timeout_s": EXEC_TIMEOUT_S,
+        "compile_timeout_s": COMPILE_TIMEOUT_S,
+        "max_code_kb": MAX_CODE_KB,
     }), 200
 
 
