@@ -1,0 +1,12 @@
+[run]
+source = src/
+omit =
+    src/metrics.py
+    src/logging_config.py
+    src/app.py
+    src/auth.py
+    src/auth_endpoints.py
+
+[report]
+show_missing = True
+fail_under = 70
