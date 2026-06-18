@@ -5,6 +5,9 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 from flask_sock import Sock
 from dotenv import load_dotenv
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+
 from auth_endpoints import auth_bp
 from auth import verify_jwt
 from logging_config import setup_logging
@@ -19,6 +22,20 @@ app = Flask(__name__)
 CORS(app)
 sock = Sock(app)
 
+# ============================================================================
+# RATE LIMITING
+# ============================================================================
+def get_user_identifier():
+    """Identifica usuário por user_id se autenticado, caso contrário usa IP."""
+    return getattr(request, 'user_id', get_remote_address())
+
+limiter = Limiter(
+    get_user_identifier,
+    app=app,
+    default_limits=["1000 per day", "300 per hour"],
+    storage_uri="memory://"
+)
+
 # Registra os blueprints
 app.register_blueprint(auth_bp)
 
@@ -29,6 +46,20 @@ MAX_CODE_KB = int(os.getenv('MAX_CODE_KB', '64'))
 
 # Registra WebSocket handlers
 register_ws_handlers(app, sock, EXEC_TIMEOUT_S, COMPILE_TIMEOUT_S)
+
+# ============================================================================
+# PROMETHEUS METRICS
+# ============================================================================
+
+@app.route('/metrics', methods=['GET'])
+def metrics():
+    """
+    Exposes Prometheus metrics.
+    """
+    from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
+    data = generate_latest()
+    return data, 200, {'Content-Type': CONTENT_TYPE_LATEST}
+
 
 # ============================================================================
 # HEALTH CHECK
@@ -104,6 +135,19 @@ def not_found(e):
     return jsonify({"error": "Endpoint not found"}), 404
 
 
+@app.errorhandler(429)
+def ratelimit_handler(e):
+    """429 Too Many Requests handler."""
+    from metrics import RATE_LIMITS
+    RATE_LIMITS.inc()
+    logger.warning(
+        "rate_limit_exceeded",
+        error=str(e),
+        status=429,
+        path=request.path
+    )
+    return jsonify({"error": "Rate limit exceeded"}), 429
+
 @app.errorhandler(500)
 def internal_error(e):
     """500 Internal Server Error handler."""
@@ -145,7 +189,12 @@ def after_request(response):
     # Calculate request latency
     latency_ms = 0.0
     if hasattr(request, 'start_time'):
-        latency_ms = (time.time() - request.start_time) * 1000
+        latency_sec = time.time() - request.start_time
+        latency_ms = latency_sec * 1000
+
+        # Record Latency Metric
+        from metrics import LATENCY
+        LATENCY.labels(method=request.method, endpoint=request.path).observe(latency_sec)
     
     # Add security headers
     response.headers['X-Content-Type-Options'] = 'nosniff'
