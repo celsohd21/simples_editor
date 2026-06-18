@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simples Editor — Apresentação Final</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/black.min.css" id="theme">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
+    :root {
+      --bg: #07111c;
+      --bg-soft: #0a1521;
+      --panel: #0c1a28;
+      --text: #eef5ff;
+      --muted: #9db0c6;
+      --accent: #7ce0c3;
+      --accent-strong: #48c9a9;
+      --warning: #ff9b6b;
+    }
+    .reveal {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+    .reveal h1, .reveal h2, .reveal h3 {
+      font-weight: 700;
+      letter-spacing: -0.03em;
+    }
+    .reveal h1 { font-size: 3.2em; }
+    .reveal h2 { font-size: 2em; color: var(--accent); }
+    .reveal h3 { font-size: 1.3em; }
+    .reveal .slides section {
+      padding: 40px;
+    }
+    .accent { color: var(--accent); }
+    .warning { color: var(--warning); }
+    .muted { color: var(--muted); }
+    .small { font-size: 0.75em; }
+    .tag {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 999px;
+      background: rgba(124, 224, 195, 0.12);
+      color: var(--accent);
+      border: 1px solid rgba(124, 224, 195, 0.26);
+      font-size: 0.7em;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      text-align: left;
+      margin-top: 20px;
+    }
+    .grid-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 20px;
+      text-align: left;
+      margin-top: 20px;
+    }
+    .grid-4 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1fr;
+      gap: 15px;
+      text-align: left;
+      margin-top: 20px;
+    }
+    .card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 16px;
+      padding: 20px;
+    }
+    .card h4 { margin: 0 0 8px; color: var(--accent); }
+    .card p, .card li { margin: 0; color: var(--muted); font-size: 0.85em; line-height: 1.6; }
+    .card ul { margin: 4px 0 0; padding-left: 16px; }
+    .card li { margin-bottom: 4px; }
+    .badge {
+      display: inline-block;
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 0.75em;
+      font-weight: 600;
+      margin: 4px;
+    }
+    .badge-front { background: rgba(0,122,204,0.2); color: #4fc3ff; }
+    .badge-back { background: rgba(124,224,195,0.2); color: var(--accent); }
+    .badge-devops { background: rgba(255,155,107,0.2); color: var(--warning); }
+    .badge-compiler { background: rgba(200,150,255,0.2); color: #cc99ff; }
+    .arch-box {
+      background: var(--panel);
+      border: 1px solid rgba(136, 184, 255, 0.16);
+      border-radius: 12px;
+      padding: 12px 16px;
+      text-align: center;
+      font-weight: 600;
+      font-size: 0.85em;
+    }
+    .arch-arrow {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.7em;
+      padding: 4px;
+    }
+    .challenge-card {
+      background: rgba(255,255,255,0.03);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 12px 12px 0;
+      padding: 16px 20px;
+      margin: 10px 0;
+      text-align: left;
+    }
+    .challenge-card h4 { margin: 0 0 4px; color: var(--accent); }
+    .challenge-card p { margin: 0; color: var(--muted); font-size: 0.85em; line-height: 1.5; }
+    .screen-mock {
+      background: var(--panel);
+      border: 1px solid rgba(136,184,255,0.16);
+      border-radius: 8px;
+      padding: 20px;
+      font-family: monospace;
+      font-size: 0.65em;
+      color: var(--muted);
+      text-align: left;
+      line-height: 1.5;
+    }
+    .screen-mock .keyword { color: #569cd6; }
+    .screen-mock .comment { color: #6a9955; }
+    .screen-mock .string { color: #ce9178; }
+    .screen-mock .output { color: var(--accent); }
+    .timeline-item {
+      display: grid;
+      grid-template-columns: 100px 1fr;
+      gap: 10px;
+      text-align: left;
+      margin: 8px 0;
+    }
+    .timeline-sprint {
+      font-weight: 700;
+      color: var(--accent);
+    }
+    .timeline-desc {
+      color: var(--muted);
+      font-size: 0.8em;
+    }
+    .lessons-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      text-align: left;
+      margin-top: 15px;
+    }
+    .lessons-grid .card ul { padding-left: 16px; }
+    .lessons-grid .card li { font-size: 0.8em; margin-bottom: 6px; }
+    .team-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      text-align: left;
+      margin-top: 20px;
+    }
+    .team-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 16px;
+      padding: 20px;
+      text-align: center;
+    }
+    .team-card .avatar {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: rgba(124,224,195,0.15);
+      border: 2px solid rgba(124,224,195,0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 12px;
+      font-size: 1.8em;
+    }
+    .team-card h4 { margin: 0; color: var(--text); }
+    .team-card .role { color: var(--accent); font-size: 0.8em; margin: 4px 0; }
+    .team-card .contrib { color: var(--muted); font-size: 0.75em; }
+  </style>
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+
+<!-- ============================================================ -->
+<section>
+  <span class="tag">Sprint 6 — Apresentação Final</span>
+  <h1 style="margin-top: 30px;">Simples Editor</h1>
+  <p style="font-size: 1.2em; color: var(--muted); margin-top: 10px;">
+    Web IDE para a linguagem SIMPLES
+  </p>
+  <div style="margin-top: 40px;">
+    <p style="font-size: 0.8em; color: var(--muted);">
+      Compiladores &middot; Engenharia de Computação<br>
+      IFSULDEMINAS — Poços de Caldas
+    </p>
+    <p style="font-size: 0.7em; color: var(--muted); margin-top: 30px;">
+      <span class="tag" style="margin-right: 8px;">15-20 min</span>
+      <span class="tag">Apresentação Oral</span>
+    </p>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section>
+  <h2>1. O Problema</h2>
+  <p style="font-size: 1.1em; color: var(--muted); margin: 30px 0;">
+    "Tenho que compilar e executar um programa SIMPLES. Como eu faço?"
+  </p>
+  <div class="grid-2">
+    <div class="card">
+      <h4>❌ Antes (Fluxo Manual)</h4>
+      <ul>
+        <li>Instalar Linux 32-bit (VM/WSL)</li>
+        <li>Compilar com <code>simplesc</code></li>
+        <li>Montar com <code>nasm -f elf32</code></li>
+        <li>Linkar com <code>ld</code> (i686)</li>
+        <li>Executar binário localmente</li>
+        <li>Zero suporte a <code>leia</code> (stdin)</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>😖 Atrito</h4>
+      <ul>
+        <li>Setup complexo para cada aluno</li>
+        <li>Ambiente diferente por SO</li>
+        <li>Sem feedback visual imediato</li>
+        <li>Dificuldade de diagnosticar erros</li>
+        <li>Baixa adesão à prática</li>
+      </ul>
+    </div>
+  </div>
+  <p style="margin-top: 30px; font-size: 0.9em; color: var(--accent);">
+    <strong>Objetivo:</strong> Zero instalação local. Tudo no browser.
+  </p>
+</section>
+
+<!-- ============================================================ -->
+<section>
+  <h2>2. A Solução</h2>
+  <p style="color: var(--muted); margin-bottom: 20px;">
+    Um Web IDE completo com 3 painéis simultâneos
+  </p>
+  <div class="grid-3">
+    <div class="card">
+      <h4>📝 Editor SIMPLES</h4>
+      <p>Monaco Editor com syntax highlighting para 27 keywords, snippets, tema dark</p>
+    </div>
+    <div class="card">
+      <h4>⚙️ NASM Panel</h4>
+      <p>Assembly x86 gerado lado a lado com o código fonte original</p>
+    </div>
+    <div class="card">
+      <h4>💻 Terminal</h4>
+      <p>xterm.js interativo com suporte a <code>leia</code> (stdin) via WebSocket</p>
+    </div>
+  </div>
+  <div class="screen-mock" style="margin-top: 25px; text-align: center;">
+    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+      <div style="border-right: 1px solid rgba(255,255,255,0.1); padding: 10px;">
+        <span class="keyword">programa</span> hello<br>
+        <span class="keyword">inicio</span><br>
+        &nbsp;&nbsp;<span class="keyword">escreva</span> <span class="string">"Ola"</span><br>
+        <span class="keyword">fim</span>
+      </div>
+      <div style="border-right: 1px solid rgba(255,255,255,0.1); padding: 10px;">
+        <span class="comment">; hello.asm</span><br>
+        section .data<br>
+        msg db <span class="string">'Ola'</span>, 0
+      </div>
+      <div style="padding: 10px;">
+        <span class="output">Ola</span><br>
+        <span style="color: #858585;">Process exited</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section>
+  <h2>3. Stack Técnica</h2>
+  <div class="grid-4">
+    <div class="card" style="text-align: center;">
+      <h4>Frontend</h4>
+      <div><span class="badge badge-front">React 18</span></div>
+      <div><span class="badge badge-front">Vite 5</span></div>
+      <div><span class="badge badge-front">TypeScript</span></div>
+      <div><span class="badge badge-front">Monaco Editor</span></div>
+      <div><span class="badge badge-front">xterm.js</span></div>
+      <div><span class="badge badge-front">Playwright</span></div>
+    </div>
+    <div class="card" style="text-align: center;">
+      <h4>Backend</h4>
+      <div><span class="badge badge-back">Python 3.11</span></div>
+      <div><span class="badge badge-back">Flask 3</span></div>
+      <div><span class="badge badge-back">flask-sock</span></div>
+      <div><span class="badge badge-back">structlog</span></div>
+      <div><span class="badge badge-back">Docker SDK</span></div>
+      <div><span class="badge badge-back">flask-limiter</span></div>
+    </div>
+    <div class="card" style="text-align: center;">
+      <h4>DevOps</h4>
+      <div><span class="badge badge-devops">Docker</span></div>
+      <div><span class="badge badge-devops">Nginx</span></div>
+      <div><span class="badge badge-devops">Supabase Auth</span></div>
+      <div><span class="badge badge-devops">Prometheus</span></div>
+      <div><span class="badge badge-devops">OCI Ampere A1</span></div>
+      <div><span class="badge badge-devops">GitHub Actions</span></div>
+    </div>
+    <div class="card" style="text-align: center;">
+      <h4>Compilador</h4>
+      <div><span class="badge badge-compiler">C (simplesc)</span></div>
+      <div><span class="badge badge-compiler">NASM</span></div>
+      <div><span class="badge badge-compiler">binutils-i686</span></div>
+      <div><span class="badge badge-compiler">qemu-user</span></div>
+      <div><span class="badge badge-compiler">x86 32-bit</span></div>
+      <div><span class="badge badge-compiler">ELF</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section>
+  <h2>Arquitetura</h2>
+  <div style="margin-top: 20px; font-size: 0.75em;">
+    <div class="arch-box" style="max-width: 400px; margin: 0 auto;">
+      🌐 Browser (React + Monaco + xterm.js)
+    </div>
+    <div class="arch-arrow">⬇ HTTPS / ⬆ WSS</div>
+    <div class="arch-box" style="max-width: 400px; margin: 0 auto;">
+      🔄 Nginx (Reverse Proxy) — Porta 80
+    </div>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 600px; margin: 10px auto;">
+      <div>
+        <div class="arch-arrow">⬇ /api/*</div>
+        <div class="arch-box">
+          🖥️ Frontend<br><span class="small muted">React + Vite (porta 5173)</span>
+        </div>
+      </div>
+      <div>
+        <div class="arch-arrow">⬇ /ws/*</div>
+        <div class="arch-box">
+          ⚙️ Backend<br><span class="small muted">Flask + Toolchain (porta 5000)</span>
+        </div>
+      </div>
+    </div>
+    <div class="arch-arrow">⬇ docker run --cap-drop=ALL --network=none</div>
+    <div class="arch-box" style="max-width: 400px; margin: 0 auto;">
+      🛡️ Sandbox Executor<br>
+      <span class="small muted">Alpine + qemu-i386 (x86 emulation)</span>
+    </div>
+  </div>
+  <p style="margin-top: 20px; font-size: 0.7em; color: var(--muted);">
+    Supabase Auth (JWT) &middot; structlog (stdout) &middot; Prometheus (/metrics:9090)
+  </p>
+</section>
+
+<!-- ============================================================ -->
+<section>
+  <h2>4. Demo</h2>
+  <div class="card" style="max-width: 650px; margin: 30px auto; text-align: center;">
+    <h4 style="color: var(--warning); margin-bottom: 15px;">▶️ Vídeo de Demonstração (1-2 min)</h4>
+    <p style="color: var(--muted);">
+      <em>Inserir vídeo embed ou link para gravação de tela mostrando:</em>
+    </p>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; text-align: left; margin-top: 15px;">
+      <div class="screen-mock" style="font-size: 0.7em;">
+        1. Login com email/senha<br>
+        2. Escrever programa SIMPLES<br>
+        3. Clicar em Run<br>
+        4. Ver assembly gerado
+      </div>
+      <div class="screen-mock" style="font-size: 0.7em;">
+        5. Interagir com <code>leia</code><br>
+        6. Ver saída no terminal<br>
+        7. Testar Stop button<br>
+        8. Testar timeout
+      </div>
+    </div>
+    <p style="margin-top: 20px; font-size: 0.8em; color: var(--accent);">
+      <em>Gravar com OBS ou Loom — upload para YouTube/Google Drive</em>
+    </p>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section>
+  <h2>5. Principais Desafios</h2>
+
+  <div class="challenge-card">
+    <h4>🧩 x86 32-bit em ARM64 (Oracle Ampere A1)</h4>
+    <p>O compilador gera código x86 32-bit, mas o deploy é ARM64. Solução: <strong>qemu-user-static</strong> para emular as instruções dentro do sandbox Docker.</p>
+  </div>
+
+  <div class="challenge-card">
+    <h4>🔌 I/O interativo via WebSocket + PTY</h4>
+    <p><code>leia</code> precisa de stdin bidirecional em tempo real. Solução: WebSocket com <strong>flask-sock</strong> + duas tasks asyncio (<code>pty_to_ws</code> / <code>ws_to_pty</code>).</p>
+  </div>
+
+  <div class="challenge-card">
+    <h4>🛡️ Sandbox multi-camadas</h4>
+    <p>Código de aluno pode ser malicioso (fork bomb, socket, exaustão de memória). Solução: <strong>9 layers de segurança</strong> — cap_drop, network=none, read-only, cgroups, seccomp, no-new-privs, pids-limit, nobody user, tmpfs.</p>
+  </div>
+
+  <div class="challenge-card">
+    <h4>⏱️ Timeout em 3 camadas</h4>
+    <p>Loop infinito poderia travar o servidor. Solução: timeout de compilação (15s) + timeout de execução (10s) + Docker stop-timeout (12s). SIGTERM → 1s → SIGKILL.</p>
+  </div>
+
+  <div class="challenge-card">
+    <h4>🔄 Pipeline cross-platform</h4>
+    <p>simplesc gera NASM x86, mas o host pode ser x86_64 ou ARM64. Solução: NASM é cross-assembler; <strong>binutils-i686-linux-gnu</strong> para linkagem cruzada; qemu para execução.</p>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section>
+  <h2>6. Resultado Final</h2>
+  <p style="color: var(--muted); margin-bottom: 20px;">
+    Telas da aplicação em funcionamento
+  </p>
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+    <div class="card" style="text-align: center;">
+      <h4>Tela de Login</h4>
+      <div class="screen-mock" style="height: 120px; display: flex; flex-direction: column; justify-content: center;">
+        <span class="keyword">●</span> Supabase Auth<br>
+        <span style="color: #858585;">email/password + JWT</span>
+      </div>
+    </div>
+    <div class="card" style="text-align: center;">
+      <h4>Editor Principal</h4>
+      <div class="screen-mock" style="height: 120px; display: flex; flex-direction: column; justify-content: center;">
+        <span class="keyword">programa</span> exemplo<br>
+        <span class="keyword">inteiro</span> x<br>
+        <span class="keyword">inicio</span><br>
+        &nbsp;&nbsp;<span class="keyword">leia</span> x<br>
+        &nbsp;&nbsp;<span class="keyword">escreva</span> x<br>
+        <span class="keyword">fim</span>
+      </div>
+    </div>
+    <div class="card" style="text-align: center;">
+      <h4>NASM + Terminal</h4>
+      <div class="screen-mock" style="height: 100px; display: flex; flex-direction: column; justify-content: center;">
+        <span class="comment">; exemplo.asm</span><br>
+        <span style="color: var(--accent);">> 42</span><br>
+        <span style="color: var(--accent);">42</span>
+      </div>
+    </div>
+    <div class="card" style="text-align: center;">
+      <h4>Métricas & Logs</h4>
+      <div class="screen-mock" style="height: 100px; display: flex; flex-direction: column; justify-content: center;">
+        <span style="color: #858585;">executions_total{status="success"} 127</span><br>
+        <span style="color: #858585;">rate_limits_total 3</span>
+      </div>
+    </div>
+  </div>
+  <p style="margin-top: 20px; color: var(--accent); font-size: 0.8em;">
+    <em>Screenshots reais — substituir por capturas de tela da aplicação</em>
+  </p>
+</section>
+
+<!-- ============================================================ -->
+<section>
+  <h2>7. Lições Aprendidas</h2>
+  <div class="lessons-grid">
+    <div class="card">
+      <h4>🌐 Frontend</h4>
+      <ul>
+        <li>Monaco Monarch tokenizer é poderoso para DSLs educacionais</li>
+        <li>react-resizable-panels simplifica layouts complexos</li>
+        <li>xterm.js + WebSocket é a melhor combinação para terminal no browser</li>
+        <li>Playwright E2E tests pegam regressões de UI invisíveis</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>⚙️ Backend</h4>
+      <ul>
+        <li>WebSocket sobre REST para I/O interativo foi esencial</li>
+        <li>Strategy Pattern (execução local vs Docker) simplificou dev/prod</li>
+        <li>structlog JSON pago dividendos no diagnóstico de incidentes</li>
+        <li>Rate limiting é crítico em ambiente compartilhado (sala de aula)</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>🛠️ DevOps</h4>
+      <ul>
+        <li>Segurança precisa ser defense-in-depth (9 camadas)</li>
+        <li>Cross-platform (x86 → ARM64) exige planejamento desde o início</li>
+        <li>OCI Ampere A1 Always Free é viável para uso acadêmico</li>
+        <li>Ubuntu 22.04 no OCI tem iptables bloqueando portas 80/443 por padrão</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>📚 Gerais</h4>
+      <ul>
+        <li>Terraform para infraestrutura reproduzível desde o início</li>
+        <li>qemu-user-static adiciona 5-10x overhead — aceitável para programas didáticos</li>
+        <li>Documentação de incidentes (INCIDENTS.md) reduz tempo de resposta</li>
+        <li>Testes de segurança automatizados (security_tests.py) validam o sandbox</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section>
+  <h2>Linha do Tempo (Sprints)</h2>
+  <div style="margin-top: 20px;">
+    <div class="timeline-item">
+      <div class="timeline-sprint">Sprint 1</div>
+      <div class="timeline-desc"><strong>Fundação:</strong> Docker Compose, Supabase Auth, JWT, health endpoint</div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-sprint">Sprint 2</div>
+      <div class="timeline-desc"><strong>Editor:</strong> Monaco, tokenizer SIMPLES (27 keywords), 3 painéis, resizable</div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-sprint">Sprint 3</div>
+      <div class="timeline-desc"><strong>Pipeline:</strong> simplesc + nasm + ld no backend, compile timeout, error markers</div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-sprint">Sprint 4</div>
+      <div class="timeline-desc"><strong>Execução:</strong> WebSocket, xterm.js, PTY bridge, qemu-user, leia interativo</div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-sprint">Sprint 5</div>
+      <div class="timeline-desc"><strong>Hardening:</strong> structlog, timeouts, Prometheus, rate limiting, sandbox 9 camadas, incidentes</div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-sprint">Sprint 6</div>
+      <div class="timeline-desc"><strong>Polish:</strong> E2E tests, README, demo video, OCI deploy, apresentação final</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section>
+  <h2>8. Time</h2>
+  <div class="team-grid" style="max-width: 700px; margin: 30px auto;">
+    <div class="team-card">
+      <div class="avatar">👤</div>
+      <h4>Celso Oliveira</h4>
+      <p class="role">Lead Developer</p>
+      <p class="contrib">
+        Repo owner · Arquitetura · Frontend · Backend · Docker · CI/CD · Deploy
+      </p>
+    </div>
+    <div class="team-card">
+      <div class="avatar">👤</div>
+      <h4>Gianlucca Sagio</h4>
+      <p class="role">Developer</p>
+      <p class="contrib">
+        Sprint 5 · Hardening · Métricas · Timeouts · Testes de segurança
+      </p>
+    </div>
+    <div class="team-card">
+      <div class="avatar">👤</div>
+      <h4>Paulo Muniz de Avila</h4>
+      <p class="role">Developer</p>
+      <p class="contrib">
+        Documentação · PRs · Compilador SIMPLES (simplesc)
+      </p>
+    </div>
+    <div class="team-card">
+      <div class="avatar">👨‍🏫</div>
+      <h4>Prof. Orientador</h4>
+      <p class="role">Orientação</p>
+      <p class="contrib">
+        Requisitos · Acompanhamento · Avaliação
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section>
+  <h2>Obrigado!</h2>
+  <p style="font-size: 1.2em; color: var(--accent); margin: 40px 0;">
+    Perguntas?
+  </p>
+  <div style="margin-top: 30px;">
+    <p style="color: var(--muted); font-size: 0.85em;">
+      github.com/celsohd21/simples_editor
+    </p>
+    <p style="color: var(--muted); font-size: 0.75em; margin-top: 40px;">
+      <span class="tag">Compiladores</span>
+      <span class="tag" style="margin-left: 8px;">Eng. Computação</span>
+      <span class="tag" style="margin-left: 8px;">IFSULDEMINAS</span>
+    </p>
+  </div>
+</section>
+
+</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.min.js"></script>
+<script>
+  Reveal.initialize({
+    hash: true,
+    transition: 'slide',
+    width: 1280,
+    height: 720,
+    margin: 0.04,
+    controls: true,
+    progress: true,
+    slideNumber: true,
+    plugins: []
+  });
+</script>
+</body>
+</html>
