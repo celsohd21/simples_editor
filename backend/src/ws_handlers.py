@@ -67,6 +67,8 @@ def create_ws_handlers(sock: Sock, exec_timeout_s: int = 10, compile_timeout_s: 
                         logger.info("ws_stdin_received", user_id=user_id)
                     
                     elif message_type == "stop":
+                        from metrics import EXECUTIONS
+                        EXECUTIONS.labels(status='stop').inc()
                         logger.info("ws_stop_requested", user_id=user_id)
                         ws.send(json.dumps({"type": "exit", "code": -15, "duration_ms": 0}))
                         break
@@ -115,6 +117,8 @@ def handle_compile_and_run(ws, message, user_id, compile_timeout_s, exec_timeout
     code_kb = len(code.encode('utf-8')) / 1024
     
     if code_kb > max_code_kb:
+        from metrics import COMPILATIONS
+        COMPILATIONS.labels(status='error').inc()
         logger.warning(
             "code_too_large",
             user_id=user_id,
@@ -159,6 +163,8 @@ def handle_compile_and_run(ws, message, user_id, compile_timeout_s, exec_timeout
                 )
                 
                 if result.returncode != 0:
+                    from metrics import COMPILATIONS
+                    COMPILATIONS.labels(status='error').inc()
                     logger.warning(
                         "compile_error",
                         user_id=user_id,
@@ -187,6 +193,8 @@ def handle_compile_and_run(ws, message, user_id, compile_timeout_s, exec_timeout
                 }))
                 
             except subprocess.TimeoutExpired:
+                from metrics import COMPILATIONS
+                COMPILATIONS.labels(status='error').inc()
                 logger.error(
                     "compile_timeout",
                     user_id=user_id,
@@ -209,6 +217,8 @@ def handle_compile_and_run(ws, message, user_id, compile_timeout_s, exec_timeout
                 )
                 
                 if result.returncode != 0:
+                    from metrics import COMPILATIONS
+                    COMPILATIONS.labels(status='error').inc()
                     logger.warning("assemble_error", user_id=user_id)
                     ws.send(json.dumps({
                         "type": "assemble_error",
@@ -219,6 +229,8 @@ def handle_compile_and_run(ws, message, user_id, compile_timeout_s, exec_timeout
                 logger.info("assemble_success", user_id=user_id)
                 
             except (subprocess.TimeoutExpired, FileNotFoundError) as e:
+                from metrics import COMPILATIONS
+                COMPILATIONS.labels(status='error').inc()
                 logger.error("assemble_error", user_id=user_id, error=str(e))
                 ws.send(json.dumps({
                     "type": "assemble_error",
@@ -237,6 +249,8 @@ def handle_compile_and_run(ws, message, user_id, compile_timeout_s, exec_timeout
                 )
                 
                 if result.returncode != 0:
+                    from metrics import COMPILATIONS
+                    COMPILATIONS.labels(status='error').inc()
                     logger.warning("link_error", user_id=user_id)
                     ws.send(json.dumps({
                         "type": "link_error",
@@ -244,9 +258,13 @@ def handle_compile_and_run(ws, message, user_id, compile_timeout_s, exec_timeout
                     }))
                     return
                 
+                from metrics import COMPILATIONS
+                COMPILATIONS.labels(status='success').inc()
                 logger.info("link_success", user_id=user_id)
                 
             except (subprocess.TimeoutExpired, FileNotFoundError) as e:
+                from metrics import COMPILATIONS
+                COMPILATIONS.labels(status='error').inc()
                 logger.error("link_error", user_id=user_id, error=str(e))
                 ws.send(json.dumps({
                     "type": "link_error",
@@ -289,6 +307,8 @@ def handle_compile_and_run(ws, message, user_id, compile_timeout_s, exec_timeout
                         "data": error
                     }))
                 
+                from metrics import EXECUTIONS
+                EXECUTIONS.labels(status='success' if exit_code == 0 else 'error').inc()
                 logger.info(
                     "execution_completed",
                     user_id=user_id,
@@ -304,6 +324,8 @@ def handle_compile_and_run(ws, message, user_id, compile_timeout_s, exec_timeout
                 
             except subprocess.TimeoutExpired:
                 # TIMEOUT OCCURRED - key part of Sprint 5
+                from metrics import EXECUTIONS
+                EXECUTIONS.labels(status='timeout').inc()
                 logger.warning(
                     "execution_timeout",
                     user_id=user_id,
@@ -317,6 +339,8 @@ def handle_compile_and_run(ws, message, user_id, compile_timeout_s, exec_timeout
                 }))
         
         except Exception as e:
+            from metrics import EXECUTIONS
+            EXECUTIONS.labels(status='error').inc()
             logger.error(
                 "execution_exception",
                 user_id=user_id,
