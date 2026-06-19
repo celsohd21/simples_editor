@@ -102,7 +102,7 @@ def signup():
         return jsonify({
             "user_id": user_id,
             "email": email,
-            "token": token,
+            "access_token": token,
             "expires_in": 86400,  # 24 horas em segundos
         }), 201
     
@@ -183,7 +183,7 @@ def login():
         return jsonify({
             "user_id": user_id,
             "email": email,
-            "token": token,
+            "access_token": token,
             "expires_in": 86400,  # 24 horas em segundos
         }), 200
     

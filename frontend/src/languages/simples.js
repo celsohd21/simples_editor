@@ -13,22 +13,32 @@ export function registerSimplesLanguage() {
 
   // Define o tokenizer com Monarch
   monaco.languages.setMonarchTokensProvider('simples', {
-    // Palavras-chave da linguagem SIMPLES (27 keywords)
     keywords: [
       'programa',
       'inicio',
       'fim',
       'leia',
       'escreva',
+      'escreval',
       'enquanto',
+      'faca',
+      'fimenquanto',
       'para',
+      'de',
+      'ate',
+      'passo',
+      'fimpara',
       'se',
       'entao',
       'senao',
+      'fimse',
       'inteiro',
       'real',
+      'flutuante',
       'caractere',
       'booleano',
+      'string',
+      'vazio',
       'e',
       'ou',
       'nao',
@@ -36,16 +46,11 @@ export function registerSimplesLanguage() {
       'falso',
       'div',
       'mod',
-      'funcao',
+      'procedimento',
       'retorna',
-      'de',
-      'ate',
-      'passo',
-      'faca',
     ],
 
-    // Operadores
-    operators: ['+', '-', '*', '/', '%', '=', '==', '!=', '<', '>', '<=', '>=', ':='],
+    operators: ['+', '-', '*', '/', '%', '=', '<>', '!=', '<', '>', '<=', '>=', ':=', '<-'],
 
     // Símbolos (pontuação)
     symbols: /[=><!~?:&|+\-*\/^%]+/,
@@ -54,6 +59,8 @@ export function registerSimplesLanguage() {
     tokenizer: {
       root: [
         // Comentários
+        [/\/\/.*$/, 'comment'],
+        [/\/\*[\s\S]*?\*\//, 'comment'],
         [/\{[^}]*\}/, 'comment'],
 
         // Strings (entre aspas simples ou duplas)

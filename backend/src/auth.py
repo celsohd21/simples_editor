@@ -29,7 +29,10 @@ class SupabaseAuth:
         self.supabase_key = os.getenv('SUPABASE_KEY')
         
         if not self.supabase_url or not self.supabase_key:
-            raise ValueError("SUPABASE_URL e SUPABASE_KEY devem estar definidas no .env")
+            logger.warning(
+                "supabase_not_configured",
+                error="SUPABASE_URL e SUPABASE_KEY não definidas — auth local usará JWT mockado"
+            )
 
     def get_jwt_secret(self):
         """

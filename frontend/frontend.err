@@ -1,0 +1,6 @@
+TSConfckParseError: [31m  Failed to scan for dependencies from entries:
+  C:/Users/Celso/OneDrive/Desktop/Compiladores/Trabalho Pratico/simples-compiler/frontend/index.html
+C:/Users/Celso/OneDrive/Desktop/Compiladores/Trabalho Pratico/simples-compiler/frontend/playwright-report/index.html
+
+  [39mparsing C:/Users/Celso/OneDrive/Desktop/Compiladores/Trabalho Pratico/simples-compiler/frontend/tsconfig.node.json failed: Error: ENOENT: no such file or directory, open 'C:\Users\Celso\OneDrive\Desktop\Compiladores\Trabalho Pratico\simples-compiler\frontend\tsconfig.node.json'
+    at file:///C:/Users/Celso/OneDrive/Desktop/Compiladores/Trabalho%20Pratico/simples-compiler/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:18698:10

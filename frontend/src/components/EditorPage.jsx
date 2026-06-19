@@ -4,154 +4,6 @@ import Editor from './Editor'
 import NasmPanel from './NasmPanel'
 import './EditorPage.css'
 
-const MOCK_NASM = `; Generated NASM Assembly
-section .data
-    msg db "Ola, SIMPLES!", 0
-
-section .text
-    global _start
-_start:
-    mov rax, 1
-    mov rdi, 1
-    mov rsi, msg
-    mov rdx, 13
-    syscall
-    mov rax, 60
-    mov rdi, 0
-    syscall`
-
-function mockCompile(source) {
-  const lines = source.split('\n')
-  const errors = []
-
-  const cleaned = source
-    .split('\n')
-    .map((l) => l.replace(/{[^}]*}/g, '').trim())
-    .filter((l) => l.length > 0 && !l.startsWith('//'))
-
-  if (cleaned.length === 0) {
-    return { errors, nasm: '', terminal: '[!] Nenhum codigo para compilar.\n' }
-  }
-
-  cleaned.forEach((line, i) => {
-    if (line.length > 80) {
-      errors.push({
-        line: i + 1,
-        column: 81,
-        message: 'Linha muito longa (>80 caracteres)',
-        severity: 'warning',
-      })
-    }
-  })
-
-  const hasPrograma = cleaned.some((l) => /\bprograma\b/i.test(l))
-  const hasInicio = cleaned.some((l) => /\binicio\b/i.test(l))
-  const hasFim = cleaned.some((l) => /\bfim\b/i.test(l))
-
-  if (cleaned.some((l) => /\binicio\b/i.test(l)) && !hasFim) {
-    errors.push({
-      line: null,
-      column: null,
-      message: 'Bloco "inicio" sem "fim" correspondente — esperado "fim" no final do programa',
-      severity: 'error',
-    })
-  }
-
-  if (cleaned.some((l) => /\bfim\b/i.test(l)) && !hasInicio) {
-    errors.push({
-      line: null,
-      column: null,
-      message: '"fim" sem "inicio" correspondente',
-      severity: 'error',
-    })
-  }
-
-  if (hasPrograma && !hasInicio) {
-    errors.push({
-      line: null,
-      column: null,
-      message: 'Esperado "inicio" apos "programa"',
-      severity: 'error',
-    })
-  }
-
-  if (hasInicio && !hasPrograma && !hasFim) {
-    errors.push({
-      line: null,
-      column: null,
-      message: 'Programa deve comecar com "programa <nome>"',
-      severity: 'error',
-    })
-  }
-
-  const declaredVars = new Set()
-  const usedVars = new Set()
-
-  cleaned.forEach((line, i) => {
-    const declMatch = line.match(
-      /\b(inteiro|real|caractere|booleano)\s+([a-zA-Z_]\w*)/i
-    )
-    if (declMatch) {
-      declaredVars.add(declMatch[2].toLowerCase())
-    }
-
-    const useMatch = line.match(/\b(leia|escreva)\s+([a-zA-Z_]\w*)/i)
-    if (useMatch) {
-      usedVars.add(useMatch[2].toLowerCase())
-    }
-  })
-
-  usedVars.forEach((v) => {
-    if (!declaredVars.has(v)) {
-      const lineNum =
-        cleaned.findIndex(
-          (l) =>
-            new RegExp(`\\b(leia|escreva)\\s+${v}\\b`, 'i').test(l)
-        ) + 1
-      errors.push({
-        line: lineNum > 0 ? lineNum : null,
-        column: null,
-        message: `Variavel "${v}" nao declarada`,
-        severity: 'error',
-      })
-    }
-  })
-
-  const hasErrors = errors.some((e) => e.severity === 'error')
-  const warnings = errors.filter((e) => e.severity === 'warning')
-  const errs = errors.filter((e) => e.severity === 'error')
-
-  if (!hasErrors) {
-    const nasm = MOCK_NASM
-    const termLines = [
-      '[OK] Compilacao concluida com sucesso!',
-      `[i] Linhas: ${lines.length}`,
-      `[i] Avisos: ${warnings.length}`,
-      `[i] Erros: ${errs.length}`,
-      '',
-      '$ ./output',
-      'Ola, SIMPLES!',
-      '',
-      '[OK] Execucao finalizada (codigo de saida: 0)',
-    ]
-    const terminal = termLines.join('\n')
-    return { errors, nasm, terminal }
-  }
-
-  const termLines = [
-    '[FALHA] Erros de compilacao encontrados:',
-    ...errs.map(
-      (e) =>
-        `  ${e.line ? `Linha ${e.line}` : '---'}: ${e.message}`
-    ),
-    '',
-    `[i] Total: ${errs.length} erro(s), ${warnings.length} aviso(s)`,
-  ]
-  const terminal = termLines.join('\n')
-
-  return { errors, nasm: '', terminal }
-}
-
 /**
  * Página principal com o Monaco Editor integrado.
  * Componentes da página:
@@ -161,14 +13,25 @@ function mockCompile(source) {
  */
 export default function EditorPage({ onLogout }) {
   const [code, setCode] = useState(
-    `programa Exemplo\ninicio\n  inteiro x\n  leia x\n  escreva x\nfim`
+    'programa HelloWorld\ninicio\n  escreva "Ola, SIMPLES!"\nfim'
   )
+
+  const handleExample = (name) => {
+    const examples = {
+      hello: 'programa HelloWorld\ninicio\n  escreva "Ola, SIMPLES!"\nfim',
+      soma: 'programa Soma\ninicio\n  inteiro a\n  inteiro b\n  inteiro resultado\n  leia a\n  leia b\n  resultado := a + b\n  escreva resultado\nfim',
+      condicional: 'programa Condicional\ninicio\n  inteiro x\n  leia x\n  se x > 0 entao\n    escreva "positivo"\n  senao\n    escreva "negativo ou zero"\n  fimse\nfim',
+      contagem: 'programa Contagem\ninicio\n  inteiro i\n  i := 1\n  enquanto i <= 5 faca\n    escreva i\n    i := i + 1\n  fimenquanto\nfim',
+    }
+    if (examples[name]) setCode(examples[name])
+  }
   const [savedCode, setSavedCode] = useState(code)
   const [isRunning, setIsRunning] = useState(false)
   const [namsCollapsed, setNasmCollapsed] = useState(false)
   const [nasmOutput, setNasmOutput] = useState('')
   const [terminalOutput, setTerminalOutput] = useState('')
   const [compilationErrors, setCompilationErrors] = useState([])
+  const [stdinInput, setStdinInput] = useState('')
   const resizerRef = useRef(null)
 
   // Salva o código em localStorage
@@ -181,19 +44,49 @@ export default function EditorPage({ onLogout }) {
     return () => window.removeEventListener('editor:save', handleSave)
   }, [code])
 
-  const handleRun = useCallback(() => {
+  const handleRun = useCallback(async () => {
     setIsRunning(true)
     setCompilationErrors([])
-    setNasmOutput('🔄 Compilando...')
+    setNasmOutput('')
     setTerminalOutput('🔄 Compilando...')
 
-    setTimeout(() => {
-      const result = mockCompile(code)
-      setCompilationErrors(result.errors)
-      setNasmOutput(result.nasm)
-      setTerminalOutput(result.terminal)
+    try {
+      const token = localStorage.getItem('auth_token')
+      const headers = { 'Content-Type': 'application/json' }
+      if (token) headers['Authorization'] = 'Bearer ' + token
+
+      const response = await fetch('/api/run', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ code, stdin: stdinInput }),
+      })
+
+      const result = await response.json()
+
+      if (result.ok) {
+        setNasmOutput(result.nasm || '')
+        setCompilationErrors([])
+
+        setTerminalOutput((result.stdout || '') + (result.stderr || ''))
+      } else {
+        const errs = result.errors || []
+        const markers = errs.map((e) => ({
+          line: e.line || 1,
+          column: e.column || 1,
+          message: e.message,
+          severity: e.phase === 'warning' ? 'warning' : 'error',
+        }))
+        setCompilationErrors(markers)
+        setTerminalOutput(errs.map((e) => `${e.phase}:${e.line}:${e.column}: ${e.message}`).join('\n'))
+        if (result.nasm) setNasmOutput(result.nasm)
+      }
+    } catch (err) {
+      setCompilationErrors([])
+      setNasmOutput('')
+      setTerminalOutput('[ERRO] Nao foi possivel conectar ao servidor de compilacao.\n' + err.message)
+    } finally {
       setIsRunning(false)
-    }, 1500)
+    }
   }, [code])
 
   const handleClear = () => {
@@ -204,7 +97,7 @@ export default function EditorPage({ onLogout }) {
 
   const handleReset = () => {
     if (confirm('Deseja restaurar o código de exemplo?')) {
-      setCode(`// Bem-vindo ao Simples Editor!\n// Escreva código SIMPLES aqui\n\nleia x\nescreva x\n`)
+      setCode('programa Soma\ninicio\n  inteiro a\n  inteiro b\n  inteiro resultado\n  leia a\n  leia b\n  resultado := a + b\n  escreva resultado\nfim')
     }
   }
 
@@ -317,9 +210,20 @@ export default function EditorPage({ onLogout }) {
                 ) : (
                   <>
                     <p className="placeholder-text">Terminal será exibido aqui após execução</p>
-                    <p className="placeholder-hint">(Clique em Run para compilar)</p>
+                    <p className="placeholder-hint">(Clique em Run para executar)</p>
                   </>
                 )}
+              </div>
+              <div className="terminal-stdin">
+                <span className="stdin-label">stdin:</span>
+                <input
+                  type="text"
+                  className="stdin-input"
+                  placeholder="Entrada para o programa (leia)"
+                  value={stdinInput}
+                  onChange={(e) => setStdinInput(e.target.value)}
+                  disabled={isRunning}
+                />
               </div>
             </div>
           </Panel>

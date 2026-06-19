@@ -12,6 +12,7 @@ from auth_endpoints import auth_bp
 from auth import verify_jwt
 from logging_config import setup_logging
 from ws_handlers import register_ws_handlers
+from compiler import compile_simples, run_simples
 
 load_dotenv()
 
@@ -117,6 +118,81 @@ def protected_endpoint():
         "user_id": request.user_id,
         "user_email": request.user_email,
     }), 200
+
+
+# ============================================================================
+# COMPILE ENDPOINT
+# ============================================================================
+
+@app.route('/api/compile', methods=['POST'])
+def compile_endpoint():
+    """
+    Compile SIMPLES code and return NASM assembly or errors.
+    Body: {"code": "programa ...\\n"}
+    """
+    try:
+        data = request.get_json()
+        if not data or 'code' not in data:
+            return jsonify({"ok": False, "errors": [{
+                "phase": "validation", "line": 1, "column": 1,
+                "message": "Campo 'code' é obrigatório"
+            }]}), 400
+
+        result = compile_simples(data['code'], COMPILE_TIMEOUT_S)
+
+        if result['ok']:
+            return jsonify(result), 200
+        else:
+            return jsonify(result), 422
+
+    except Exception as e:
+        logger.error("compile_endpoint_error", error=str(e))
+        return jsonify({"ok": False, "errors": [{
+            "phase": "erro", "line": 1, "column": 1,
+            "message": f"Erro interno: {str(e)}"
+        }]}), 500
+
+
+# ============================================================================
+# RUN ENDPOINT
+# ============================================================================
+
+@app.route('/api/run', methods=['POST'])
+def run_endpoint():
+    """
+    Compile, assemble, link and execute SIMPLES code.
+    Body: {"code": "...", "stdin": "...", "exec_timeout_s": 10}
+    """
+    try:
+        data = request.get_json()
+        if not data or 'code' not in data:
+            return jsonify({"ok": False, "errors": [{
+                "phase": "validation", "line": 1, "column": 1,
+                "message": "Campo 'code' é obrigatório"
+            }]}), 400
+
+        stdin_data = data.get('stdin', '')
+        exec_timeout = int(data.get('exec_timeout_s', EXEC_TIMEOUT_S))
+
+        result = run_simples(
+            data['code'],
+            stdin_data=stdin_data,
+            compile_timeout_s=COMPILE_TIMEOUT_S,
+            exec_timeout_s=exec_timeout,
+        )
+
+        if result.get('ok'):
+            return jsonify(result), 200
+        else:
+            status = 422 if not result.get('errors', [{}])[0].get('phase') == 'runtime' else 200
+            return jsonify(result), status
+
+    except Exception as e:
+        logger.error("run_endpoint_error", error=str(e))
+        return jsonify({"ok": False, "errors": [{
+            "phase": "erro", "line": 1, "column": 1,
+            "message": f"Erro interno: {str(e)}"
+        }]}), 500
 
 
 # ============================================================================
